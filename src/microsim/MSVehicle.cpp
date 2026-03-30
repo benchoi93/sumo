@@ -87,7 +87,47 @@
 #include "MSLeaderInfo.h"
 #include "MSDriverState.h"
 #include "MSVehicle.h"
+#include <microsim/cfmodels/MSCFModel_Krauss.h>
+#include <utils/xml/SUMOXMLDefinitions.h>
 
+// Helper for devirtualized Krauss fast-path dispatch.
+// When the CF model is known to be Krauss (by cached model ID check),
+// we bypass the vtable to call MSCFModel_Krauss methods directly.
+namespace {
+inline double kraussFollowSpeed(const MSCFModel& cfModel, bool isKrauss,
+                                const MSVehicle* const veh, double speed,
+                                double gap2pred, double predSpeed, double predMaxDecel,
+                                const MSVehicle* const pred = nullptr,
+                                MSCFModel::CalcReason usage = MSCFModel::CalcReason::CURRENT) {
+    if (isKrauss) {
+        return static_cast<const MSCFModel_Krauss&>(cfModel).MSCFModel_Krauss::followSpeed(
+            veh, speed, gap2pred, predSpeed, predMaxDecel, pred, usage);
+    }
+    return cfModel.followSpeed(veh, speed, gap2pred, predSpeed, predMaxDecel, pred, usage);
+}
+
+inline double kraussStopSpeed(const MSCFModel& cfModel, bool isKrauss,
+                              const MSVehicle* const veh, double speed,
+                              double gap, double decel,
+                              MSCFModel::CalcReason usage = MSCFModel::CalcReason::CURRENT) {
+    if (isKrauss) {
+        return static_cast<const MSCFModel_Krauss&>(cfModel).MSCFModel_Krauss::stopSpeed(
+            veh, speed, gap, decel, usage);
+    }
+    return cfModel.stopSpeed(veh, speed, gap, decel, usage);
+}
+
+inline double kraussStopSpeed(const MSCFModel& cfModel, bool isKrauss,
+                              const MSVehicle* const veh, double speed,
+                              double gap,
+                              MSCFModel::CalcReason usage = MSCFModel::CalcReason::CURRENT) {
+    if (isKrauss) {
+        return static_cast<const MSCFModel_Krauss&>(cfModel).MSCFModel_Krauss::stopSpeed(
+            veh, speed, gap, cfModel.getMaxDecel(), usage);
+    }
+    return cfModel.stopSpeed(veh, speed, gap, usage);
+}
+} // anonymous namespace
 
 //#define DEBUG_PLAN_MOVE
 //#define DEBUG_PLAN_MOVE_LEADERINFO
@@ -2228,6 +2268,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
     newStopDist = std::numeric_limits<double>::max();
     //
     const MSCFModel& cfModel = getCarFollowModel();
+    const bool isKrauss = (cfModel.getCachedModelID() == SUMO_TAG_CF_KRAUSS);
     const double vehicleLength = getVehicleType().getLength();
     const double maxV = cfModel.maxNextSpeed(myState.mySpeed, this);
     const double maxVD = MAX2(getMaxSpeed(), MIN2(maxV, getDesiredMaxSpeed()));
@@ -2478,7 +2519,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
             PersonDist leader = lane->nextBlocking(relativePos,
                                                    getRightSideOnLane(lane), getRightSideOnLane(lane) + getVehicleType().getWidth(), stopTime);
             if (leader.first != 0) {
-                const double stopSpeed = cfModel.stopSpeed(this, getSpeed(), leader.second - getVehicleType().getMinGap());
+                const double stopSpeed = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), leader.second - getVehicleType().getMinGap());
                 v = MIN2(v, stopSpeed);
 #ifdef DEBUG_PLAN_MOVE
                 if (DEBUG_COND) {
@@ -2502,7 +2543,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
                 PersonDist leader = bidiLane->nextBlocking(relativePos,
                                     leftSideOnLane - getVehicleType().getWidth(), leftSideOnLane, stopTime, true);
                 if (leader.first != 0) {
-                    const double stopSpeed = cfModel.stopSpeed(this, getSpeed(), leader.second - getVehicleType().getMinGap());
+                    const double stopSpeed = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), leader.second - getVehicleType().getMinGap());
                     v = MIN2(v, stopSpeed);
 #ifdef DEBUG_PLAN_MOVE
                     if (DEBUG_COND) {
@@ -2572,7 +2613,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
                             if (!stop.reached) {
                                 distToEnd += stop.pars.endPos - stop.pars.startPos;
                             }
-                            stopSpeed = MAX2(cfModel.stopSpeed(this, getSpeed(), distToEnd), vMinComfortable);
+                            stopSpeed = MAX2(kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), distToEnd), vMinComfortable);
                             waypointWithStop = true;
                         }
                     }
@@ -2591,7 +2632,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
                         }
                     }
                 } else {
-                    stopSpeed = cfModel.stopSpeed(this, getSpeed(), stopDist);
+                    stopSpeed = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), stopDist);
                     if (!instantStopping()) {
                         // regular stops are not emergencies
                         stopSpeed = MAX2(stopSpeed, vMinComfortable);
@@ -2602,7 +2643,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
                         myInfluencer->setSpeedTimeLine(speedTimeLine);
                     }
                     if (lastLink != nullptr) {
-                        lastLink->adaptLeaveSpeed(cfModel.stopSpeed(this, vLinkPass, endPos, MSCFModel::CalcReason::FUTURE));
+                        lastLink->adaptLeaveSpeed(kraussStopSpeed(cfModel, isKrauss, this, vLinkPass, endPos, MSCFModel::CalcReason::FUTURE));
                     }
                 }
                 newStopSpeed = MIN2(newStopSpeed, stopSpeed);
@@ -2708,7 +2749,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
                 || (MSGlobals::gSublane && brakeForOverlap(*link, lane))
                 || (opposite && (*link)->getViaLaneOrLane()->getParallelOpposite() == nullptr
                     && !myLaneChangeModel->hasBlueLight())) {
-            double va = cfModel.stopSpeed(this, getSpeed(), seen);
+            double va = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), seen);
             if (lastLink != nullptr) {
                 lastLink->adaptLeaveSpeed(va);
             }
@@ -2798,7 +2839,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
             // check for train direction reversal
             if (lane->getBidiLane() != nullptr
                     && (*link)->getLane()->getBidiLane() == lane) {
-                double vMustReverse = getCarFollowModel().stopSpeed(this, getSpeed(), seen - POSITION_EPS);
+                double vMustReverse = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), seen - POSITION_EPS);
                 if (seen < 1) {
                     mustSeeBeforeReversal = 2 * seen + getLength();
                 }
@@ -2830,7 +2871,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
                 const double timeRemaining = STEPS2TIME(myLaneChangeModel->remainingTime());
                 assert(timeRemaining != 0);
                 // XXX: Euler-logic (#860), but I couldn't identify problems from this yet (Leo). Refs. #2575
-                const double va = MAX2(cfModel.stopSpeed(this, getSpeed(), seen - POSITION_EPS),
+                const double va = MAX2(kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), seen - POSITION_EPS),
                                        (seen - POSITION_EPS) / timeRemaining);
 #ifdef DEBUG_PLAN_MOVE
                 if (DEBUG_COND) {
@@ -2853,7 +2894,7 @@ MSVehicle::planMoveInternal(const SUMOTime t, MSLeaderInfo ahead, DriveItemVecto
         // - even if red, if we cannot break we should issue a request
         bool setRequest = (v > NUMERICAL_EPS_SPEED && !abortRequestAfterMinor) || (leavingCurrentIntersection);
 
-        double stopSpeed = cfModel.stopSpeed(this, getSpeed(), stopDist, stopDecel, MSCFModel::CalcReason::CURRENT_WAIT);
+        double stopSpeed = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), stopDist, stopDecel, MSCFModel::CalcReason::CURRENT_WAIT);
         double vLinkWait = MIN2(v, stopSpeed);
 #ifdef DEBUG_PLAN_MOVE
         if (DEBUG_COND) {
@@ -3252,6 +3293,7 @@ MSVehicle::adaptToLeader(const std::pair<const MSVehicle*, double> leaderInfo,
             return;
         }
         const MSCFModel& cfModel = getCarFollowModel();
+        const bool isKrauss = (cfModel.getCachedModelID() == SUMO_TAG_CF_KRAUSS);
         double vsafeLeader = 0;
         if (!MSGlobals::gSemiImplicitEulerUpdate) {
             vsafeLeader = -std::numeric_limits<double>::max();
@@ -3286,14 +3328,14 @@ MSVehicle::adaptToLeader(const std::pair<const MSVehicle*, double> leaderInfo,
                     // do not drive onto the junction conflict area
                     stopDist -= lastLink->myLink->getInternalLaneBefore()->getLength();
                 }
-                vsafeLeader = cfModel.stopSpeed(this, getSpeed(), stopDist);
+                vsafeLeader = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), stopDist);
             }
         }
         if (backOnRoute) {
-            vsafeLeader = cfModel.followSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first);
+            vsafeLeader = kraussFollowSpeed(cfModel, isKrauss, this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first);
         }
         if (lastLink != nullptr) {
-            const double futureVSafe = cfModel.followSpeed(this, lastLink->accelV, leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first, MSCFModel::CalcReason::FUTURE);
+            const double futureVSafe = kraussFollowSpeed(cfModel, isKrauss, this, lastLink->accelV, leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first, MSCFModel::CalcReason::FUTURE);
             lastLink->adaptLeaveSpeed(futureVSafe);
 #ifdef DEBUG_PLAN_MOVE
             if (DEBUG_COND) {
@@ -3338,13 +3380,14 @@ MSVehicle::adaptToJunctionLeader(const std::pair<const MSVehicle*, double> leade
             return;
         }
         const MSCFModel& cfModel = getCarFollowModel();
+        const bool isKrauss = (cfModel.getCachedModelID() == SUMO_TAG_CF_KRAUSS);
         double vsafeLeader = 0;
         if (!MSGlobals::gSemiImplicitEulerUpdate) {
             vsafeLeader = -std::numeric_limits<double>::max();
         }
         if (leaderInfo.second >= 0) {
             if (hasDeparted()) {
-                vsafeLeader = cfModel.followSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first);
+                vsafeLeader = kraussFollowSpeed(cfModel, isKrauss, this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first);
             } else {
                 // called in the context of MSLane::isInsertionSuccess
                 vsafeLeader = cfModel.insertionFollowSpeed(this, getSpeed(), leaderInfo.second, leaderInfo.first->getSpeed(), leaderInfo.first->getCurrentApparentDecel(), leaderInfo.first);
@@ -3352,7 +3395,7 @@ MSVehicle::adaptToJunctionLeader(const std::pair<const MSVehicle*, double> leade
         } else if (leaderInfo.first != this) {
             // the leading, in-lapping vehicle is occupying the complete next lane
             // stop before entering this lane
-            vsafeLeader = cfModel.stopSpeed(this, getSpeed(), seen - lane->getLength() - POSITION_EPS);
+            vsafeLeader = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), seen - lane->getLength() - POSITION_EPS);
 #ifdef DEBUG_PLAN_MOVE_LEADERINFO
             if (DEBUG_COND) {
                 std::cout << SIMTIME << " veh=" << getID() << "  stopping before junction: lane=" << lane->getID() << " seen=" << seen
@@ -3366,10 +3409,10 @@ MSVehicle::adaptToJunctionLeader(const std::pair<const MSVehicle*, double> leade
         }
         if (distToCrossing >= 0) {
             // can the leader still stop in the way?
-            const double vStop = cfModel.stopSpeed(this, getSpeed(), distToCrossing - getVehicleType().getMinGap());
+            const double vStop = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), distToCrossing - getVehicleType().getMinGap());
             if (leaderInfo.first == this) {
                 // braking for pedestrian
-                const double vStopCrossing = cfModel.stopSpeed(this, getSpeed(), distToCrossing);
+                const double vStopCrossing = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), distToCrossing);
                 vsafeLeader = vStopCrossing;
 #ifdef DEBUG_PLAN_MOVE_LEADERINFO
                 if (DEBUG_COND) {
@@ -3471,9 +3514,10 @@ MSVehicle::adaptToOncomingLeader(const std::pair<const MSVehicle*, double> leade
         const double splitGap = MIN2(gap, gapSum);
         // assume remaining distance is allocated in proportion to braking distance
         const double gapRatio = gapSum > 0 ? egoBrakeGap / gapSum : 0.5;
-        const double vsafeLeader = cfModel.stopSpeed(this, getSpeed(), splitGap * gapRatio + egoExit + 0.5 * freeGap);
+        const bool isKrauss = (cfModel.getCachedModelID() == SUMO_TAG_CF_KRAUSS);
+        const double vsafeLeader = kraussStopSpeed(cfModel, isKrauss, this, getSpeed(), splitGap * gapRatio + egoExit + 0.5 * freeGap);
         if (lastLink != nullptr) {
-            const double futureVSafe = cfModel.stopSpeed(this, lastLink->accelV, leaderInfo.second, MSCFModel::CalcReason::FUTURE);
+            const double futureVSafe = kraussStopSpeed(cfModel, isKrauss, this, lastLink->accelV, leaderInfo.second, MSCFModel::CalcReason::FUTURE);
             lastLink->adaptLeaveSpeed(futureVSafe);
 #ifdef DEBUG_PLAN_MOVE
             if (DEBUG_COND) {

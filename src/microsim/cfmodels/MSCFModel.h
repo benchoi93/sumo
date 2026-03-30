@@ -238,6 +238,16 @@ public:
      */
     virtual int getModelID() const = 0;
 
+    /** @brief Returns a cached copy of the model ID (avoids virtual dispatch)
+     * @return The model's ID (cached on first call)
+     */
+    inline int getCachedModelID() const {
+        if (myCachedModelID < 0) {
+            myCachedModelID = getModelID();
+        }
+        return myCachedModelID;
+    }
+
 
     /** @brief Duplicates the car-following model
      * @param[in] vtype The vehicle type this model belongs to (1:1)
@@ -736,6 +746,9 @@ protected:
 
 
 protected:
+    /// @brief Cached model ID to avoid virtual dispatch in hot paths
+    mutable int myCachedModelID = -1;
+
     /// @brief The type to which this model definition belongs to
     const MSVehicleType* myType;
 
