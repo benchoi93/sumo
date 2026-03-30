@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Integration test: 5x5 signalized urban grid
+    ~2000 vehicles, mixed types, traffic lights
+    Tests: junction logic, signal control, multi-turn movements, all CF/LC phases
+
+    Before first use, generate network and routes:
+      python generate_network.py
+      python generate_routes.py SUMO_HOME_PATH
+-->
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+    <input>
+        <net-file value="net.net.xml"/>
+        <route-files value="routes.rou.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+        <end value="1800"/>
+        <step-length value="1.0"/>
+    </time>
+    <processing>
+        <default.speeddev value="0"/>
+        <seed value="42"/>
+    </processing>
+    <report>
+        <no-step-log value="true"/>
+        <duration-log.statistics value="true"/>
+    </report>
+</sumoConfiguration>

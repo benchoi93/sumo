@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <vType id="krauss" carFollowModel="Krauss" sigma="0.5" tau="1.0" accel="2.6" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="13.89" speedDev="0" color="1,0,0"/>
+    <vType id="idm" carFollowModel="IDM" tau="1.0" accel="2.6" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="13.89" speedDev="0" color="0,1,0"/>
+    <vType id="eidm" carFollowModel="EIDM" tau="1.0" accel="2.6" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="13.89" speedDev="0" color="0,0,1"/>
+
+    <route id="main_route" edges="main out"/>
+
+    <!-- 34 Krauss vehicles -->
+    <flow id="krauss_flow" type="krauss" route="main_route" begin="0" end="297" number="34"
+          departLane="random" departSpeed="0" departPos="0"/>
+
+    <!-- 33 IDM vehicles -->
+    <flow id="idm_flow" type="idm" route="main_route" begin="0" end="297" number="33"
+          departLane="random" departSpeed="0" departPos="0"/>
+
+    <!-- 33 EIDM vehicles -->
+    <flow id="eidm_flow" type="eidm" route="main_route" begin="0" end="297" number="33"
+          departLane="random" departSpeed="0" departPos="0"/>
+
+</routes>

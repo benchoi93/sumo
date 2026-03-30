@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <vType id="car" carFollowModel="Krauss" sigma="0.5" tau="1.0" accel="2.6" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="33.33" speedDev="0"/>
+
+    <route id="highway_route" edges="highway out"/>
+
+    <!-- 10000 vehicles all trying to depart in the first 100 seconds -->
+    <flow id="heavy_flow" type="car" route="highway_route" begin="0" end="100" number="10000"
+          departLane="best" departSpeed="max" departPos="base"/>
+
+</routes>

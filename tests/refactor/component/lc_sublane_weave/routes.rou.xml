@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <!-- Slow vehicles: want to stay in right lane -->
+    <vType id="slow_car" carFollowModel="Krauss" sigma="0.5" tau="1.0" accel="2.0" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="22.22" speedDev="0"
+           laneChangeModel="SL2015" lcStrategic="1.0" lcCooperative="1.0" lcSpeedGain="1.0"
+           latAlignment="center" color="1,0,0"/>
+
+    <!-- Medium vehicles -->
+    <vType id="medium_car" carFollowModel="Krauss" sigma="0.5" tau="1.0" accel="2.6" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="27.78" speedDev="0"
+           laneChangeModel="SL2015" lcStrategic="1.0" lcCooperative="1.0" lcSpeedGain="1.5"
+           latAlignment="center" color="0,1,0"/>
+
+    <!-- Fast vehicles: want left lane -->
+    <vType id="fast_car" carFollowModel="Krauss" sigma="0.5" tau="1.0" accel="3.5" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="33.33" speedDev="0"
+           laneChangeModel="SL2015" lcStrategic="1.0" lcCooperative="1.0" lcSpeedGain="2.0"
+           latAlignment="center" color="0,0,1"/>
+
+    <route id="highway_route" edges="highway out"/>
+
+    <!-- 34 slow vehicles -->
+    <flow id="slow_flow" type="slow_car" route="highway_route" begin="0" end="99" number="34"
+          departLane="0" departSpeed="max" departPos="0"/>
+
+    <!-- 33 medium vehicles -->
+    <flow id="medium_flow" type="medium_car" route="highway_route" begin="0" end="99" number="33"
+          departLane="1" departSpeed="max" departPos="0"/>
+
+    <!-- 33 fast vehicles -->
+    <flow id="fast_flow" type="fast_car" route="highway_route" begin="0" end="99" number="33"
+          departLane="2" departSpeed="max" departPos="0"/>
+
+</routes>

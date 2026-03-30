@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <vType id="car" carFollowModel="Krauss" sigma="0.5" tau="1.0" accel="2.6" decel="4.5"
+           length="5" minGap="2.5" maxSpeed="13.89" speedDev="0"/>
+
+    <!-- Through routes -->
+    <route id="N_S" edges="N_to_C C_to_S"/>
+    <route id="S_N" edges="S_to_C C_to_N"/>
+    <route id="E_W" edges="E_to_C C_to_W"/>
+    <route id="W_E" edges="W_to_C C_to_E"/>
+
+    <!-- Right turn routes -->
+    <route id="N_W" edges="N_to_C C_to_W"/>
+    <route id="S_E" edges="S_to_C C_to_E"/>
+    <route id="E_S" edges="E_to_C C_to_S"/>
+    <route id="W_N" edges="W_to_C C_to_N"/>
+
+    <!-- Left turn routes -->
+    <route id="N_E" edges="N_to_C C_to_E"/>
+    <route id="S_W" edges="S_to_C C_to_W"/>
+    <route id="E_N" edges="E_to_C C_to_N"/>
+    <route id="W_S" edges="W_to_C C_to_S"/>
+
+    <!-- From North: 50 vehicles (30 through, 10 right, 10 left) -->
+    <flow id="N_S_flow" type="car" route="N_S" begin="0" end="600" number="30"
+          departLane="best" departSpeed="0"/>
+    <flow id="N_W_flow" type="car" route="N_W" begin="0" end="600" number="10"
+          departLane="0" departSpeed="0"/>
+    <flow id="N_E_flow" type="car" route="N_E" begin="0" end="600" number="10"
+          departLane="1" departSpeed="0"/>
+
+    <!-- From South: 50 vehicles (30 through, 10 right, 10 left) -->
+    <flow id="S_N_flow" type="car" route="S_N" begin="0" end="600" number="30"
+          departLane="best" departSpeed="0"/>
+    <flow id="S_E_flow" type="car" route="S_E" begin="0" end="600" number="10"
+          departLane="0" departSpeed="0"/>
+    <flow id="S_W_flow" type="car" route="S_W" begin="0" end="600" number="10"
+          departLane="1" departSpeed="0"/>
+
+    <!-- From East: 50 vehicles (30 through, 10 right, 10 left) — major road -->
+    <flow id="E_W_flow" type="car" route="E_W" begin="0" end="600" number="30"
+          departLane="best" departSpeed="0"/>
+    <flow id="E_S_flow" type="car" route="E_S" begin="0" end="600" number="10"
+          departLane="0" departSpeed="0"/>
+    <flow id="E_N_flow" type="car" route="E_N" begin="0" end="600" number="10"
+          departLane="1" departSpeed="0"/>
+
+    <!-- From West: 50 vehicles (30 through, 10 right, 10 left) — major road -->
+    <flow id="W_E_flow" type="car" route="W_E" begin="0" end="600" number="30"
+          departLane="best" departSpeed="0"/>
+    <flow id="W_N_flow" type="car" route="W_N" begin="0" end="600" number="10"
+          departLane="0" departSpeed="0"/>
+    <flow id="W_S_flow" type="car" route="W_S" begin="0" end="600" number="10"
+          departLane="1" departSpeed="0"/>
+
+</routes>

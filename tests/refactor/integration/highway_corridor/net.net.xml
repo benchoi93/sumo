@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Highway corridor: 10km, 3-lane highway with on-ramp merge at 5km.
+    Main highway: 3 lanes, 33.33 m/s (120 km/h)
+    On-ramp: 1 lane, 200m, merging into highway at midpoint
+-->
+<net version="1.20" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,-10.00,10001.00,200.00"
+              origBoundary="0.00,-10.00,10001.00,200.00" projParameter="!"/>
+
+    <!-- Internal edges at merge junction -->
+    <edge id=":merge_0" function="internal">
+        <lane id=":merge_0_0" index="0" speed="33.33" length="0.10"
+              shape="5000.00,-1.65 5000.00,-1.65"/>
+        <lane id=":merge_0_1" index="1" speed="33.33" length="0.10"
+              shape="5000.00,-4.95 5000.00,-4.95"/>
+        <lane id=":merge_0_2" index="2" speed="33.33" length="0.10"
+              shape="5000.00,-8.25 5000.00,-8.25"/>
+    </edge>
+    <edge id=":merge_1" function="internal">
+        <lane id=":merge_1_0" index="0" speed="22.22" length="8.00"
+              shape="4996.00,5.00 5000.00,-1.65"/>
+    </edge>
+    <edge id=":end_0" function="internal">
+        <lane id=":end_0_0" index="0" speed="33.33" length="0.10"
+              shape="10000.00,-1.65 10000.00,-1.65"/>
+        <lane id=":end_0_1" index="1" speed="33.33" length="0.10"
+              shape="10000.00,-4.95 10000.00,-4.95"/>
+        <lane id=":end_0_2" index="2" speed="33.33" length="0.10"
+              shape="10000.00,-8.25 10000.00,-8.25"/>
+    </edge>
+
+    <!-- Highway edges -->
+    <edge id="highway_upstream" from="start" to="merge" priority="1" numLanes="3" speed="33.33">
+        <lane id="highway_upstream_0" index="0" speed="33.33" length="5000.00"
+              shape="0.00,-1.65 5000.00,-1.65"/>
+        <lane id="highway_upstream_1" index="1" speed="33.33" length="5000.00"
+              shape="0.00,-4.95 5000.00,-4.95"/>
+        <lane id="highway_upstream_2" index="2" speed="33.33" length="5000.00"
+              shape="0.00,-8.25 5000.00,-8.25"/>
+    </edge>
+
+    <edge id="onramp" from="ramp_start" to="merge" priority="0" numLanes="1" speed="22.22">
+        <lane id="onramp_0" index="0" speed="22.22" length="500.00"
+              shape="4500.00,5.00 4996.00,5.00"/>
+    </edge>
+
+    <edge id="highway_downstream" from="merge" to="end" priority="1" numLanes="3" speed="33.33">
+        <lane id="highway_downstream_0" index="0" speed="33.33" length="5000.00"
+              shape="5000.00,-1.65 10000.00,-1.65"/>
+        <lane id="highway_downstream_1" index="1" speed="33.33" length="5000.00"
+              shape="5000.00,-4.95 10000.00,-4.95"/>
+        <lane id="highway_downstream_2" index="2" speed="33.33" length="5000.00"
+              shape="5000.00,-8.25 10000.00,-8.25"/>
+    </edge>
+
+    <edge id="out" from="end" to="sink" priority="1" numLanes="3" speed="33.33">
+        <lane id="out_0" index="0" speed="33.33" length="1.00"
+              shape="10000.00,-1.65 10001.00,-1.65"/>
+        <lane id="out_1" index="1" speed="33.33" length="1.00"
+              shape="10000.00,-4.95 10001.00,-4.95"/>
+        <lane id="out_2" index="2" speed="33.33" length="1.00"
+              shape="10000.00,-8.25 10001.00,-8.25"/>
+    </edge>
+
+    <!-- Junctions -->
+    <junction id="start" type="dead_end" x="0.00" y="0.00" incLanes="" intLanes=""
+              shape="0.00,0.00 0.00,-9.90"/>
+    <junction id="ramp_start" type="dead_end" x="4500.00" y="5.00" incLanes="" intLanes=""
+              shape="4500.00,6.65 4500.00,3.35"/>
+    <junction id="merge" type="priority" x="5000.00" y="0.00"
+              incLanes="highway_upstream_0 highway_upstream_1 highway_upstream_2 onramp_0"
+              intLanes=":merge_0_0 :merge_0_1 :merge_0_2 :merge_1_0"
+              shape="5000.00,0.00 5000.00,-9.90 4996.00,6.65 5000.00,6.65">
+        <request index="0" response="0000" foes="0000" cont="0"/>
+        <request index="1" response="0000" foes="0000" cont="0"/>
+        <request index="2" response="0000" foes="0000" cont="0"/>
+        <request index="3" response="0010" foes="0010" cont="0"/>
+    </junction>
+    <junction id="end" type="priority" x="10000.00" y="0.00"
+              incLanes="highway_downstream_0 highway_downstream_1 highway_downstream_2"
+              intLanes=":end_0_0 :end_0_1 :end_0_2"
+              shape="10000.00,0.00 10000.00,-9.90">
+        <request index="0" response="000" foes="000" cont="0"/>
+        <request index="1" response="000" foes="000" cont="0"/>
+        <request index="2" response="000" foes="000" cont="0"/>
+    </junction>
+    <junction id="sink" type="dead_end" x="10001.00" y="0.00"
+              incLanes="out_0 out_1 out_2" intLanes=""
+              shape="10001.00,-9.90 10001.00,0.00"/>
+
+    <!-- Connections -->
+    <connection from="highway_upstream" to="highway_downstream" fromLane="0" toLane="0" via=":merge_0_0" dir="s" state="M"/>
+    <connection from="highway_upstream" to="highway_downstream" fromLane="1" toLane="1" via=":merge_0_1" dir="s" state="M"/>
+    <connection from="highway_upstream" to="highway_downstream" fromLane="2" toLane="2" via=":merge_0_2" dir="s" state="M"/>
+    <connection from="onramp" to="highway_downstream" fromLane="0" toLane="0" via=":merge_1_0" dir="s" state="m"/>
+    <connection from="highway_downstream" to="out" fromLane="0" toLane="0" via=":end_0_0" dir="s" state="M"/>
+    <connection from="highway_downstream" to="out" fromLane="1" toLane="1" via=":end_0_1" dir="s" state="M"/>
+    <connection from="highway_downstream" to="out" fromLane="2" toLane="2" via=":end_0_2" dir="s" state="M"/>
+
+    <connection from=":merge_0" to="highway_downstream" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":merge_0" to="highway_downstream" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":merge_0" to="highway_downstream" fromLane="2" toLane="2" dir="s" state="M"/>
+    <connection from=":merge_1" to="highway_downstream" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":end_0" to="out" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":end_0" to="out" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":end_0" to="out" fromLane="2" toLane="2" dir="s" state="M"/>
+
+</net>

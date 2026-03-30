@@ -1,0 +1,13 @@
+scenario,run1_s,run2_s,run3_s,median_s
+cf_eidm_platoon,2.499,2.199,2.103,2.199
+cf_idm_platoon,1.281,1.415,1.599,1.415
+cf_krauss_platoon,1.607,1.381,1.510,1.510
+cf_mixed_models,4.901,5.192,4.207,4.901
+insertion_heavy,13.510,12.711,12.100,12.711
+junction_priority,0.803,0.701,0.499,0.701
+junction_signalized,1.087,0.805,0.985,0.985
+lc_highway_merge,5.277,4.499,5.096,5.096
+lc_sublane_weave,9.385,9.297,9.099,9.297
+traci_queries,0.392,0.399,0.309,0.392
+highway_corridor,74.206,77.005,70.893,74.206
+urban_grid,9.610,10.185,9.295,9.610

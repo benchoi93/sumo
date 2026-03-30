@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<net version="1.20" junctionCornerDetail="5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,0.00,10001.00,0.00" origBoundary="0.00,0.00,10001.00,0.00" projParameter="!"/>
+
+    <edge id="highway" from="start" to="middle" priority="1" numLanes="3">
+        <lane id="highway_0" index="0" speed="33.33" length="10000.00" shape="0.00,-8.00 10000.00,-8.00"/>
+        <lane id="highway_1" index="1" speed="33.33" length="10000.00" shape="0.00,-4.80 10000.00,-4.80"/>
+        <lane id="highway_2" index="2" speed="33.33" length="10000.00" shape="0.00,-1.60 10000.00,-1.60"/>
+    </edge>
+    <edge id="out" from="middle" to="end" priority="1" numLanes="3">
+        <lane id="out_0" index="0" speed="33.33" length="1.00" shape="10000.00,-8.00 10001.00,-8.00"/>
+        <lane id="out_1" index="1" speed="33.33" length="1.00" shape="10000.00,-4.80 10001.00,-4.80"/>
+        <lane id="out_2" index="2" speed="33.33" length="1.00" shape="10000.00,-1.60 10001.00,-1.60"/>
+    </edge>
+
+    <junction id="start" type="dead_end" x="0.00" y="0.00" incLanes="" intLanes="" shape="0.00,0.00 0.00,-9.60"/>
+    <junction id="middle" type="priority" x="10000.00" y="0.00" incLanes="highway_0 highway_1 highway_2" intLanes="" shape="10000.00,0.00 10000.00,-9.60 10000.00,-9.60 10000.00,0.00">
+        <request index="0" response="000" foes="000" cont="0"/>
+        <request index="1" response="000" foes="000" cont="0"/>
+        <request index="2" response="000" foes="000" cont="0"/>
+    </junction>
+    <junction id="end" type="dead_end" x="10001.00" y="0.00" incLanes="out_0 out_1 out_2" intLanes="" shape="10001.00,0.00 10001.00,-9.60"/>
+
+    <connection from="highway" to="out" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from="highway" to="out" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from="highway" to="out" fromLane="2" toLane="2" dir="s" state="M"/>
+
+</net>

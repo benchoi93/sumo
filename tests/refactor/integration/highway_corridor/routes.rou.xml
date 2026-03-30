@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Highway corridor routes: 5000 vehicles total
+    - 4000 on main highway (Krauss CF, LC2013)
+    - 1000 on on-ramp (IDM CF, LC2013)
+    Mixed vehicle types for realistic heterogeneity
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <!-- Vehicle types: Krauss (default, fast) -->
+    <vType id="car_krauss" length="5.0" minGap="2.5" maxSpeed="33.33" accel="2.6" decel="4.5"
+           sigma="0.5" tau="1.0" speedDev="0" color="0,255,0"
+           laneChangeModel="LC2013"/>
+
+    <!-- Vehicle type: IDM (slower, more conservative) -->
+    <vType id="car_idm" length="5.0" minGap="2.5" maxSpeed="30.56" accel="2.0" decel="4.0"
+           sigma="0" tau="1.2" speedDev="0" color="0,0,255"
+           carFollowModel="IDM" laneChangeModel="LC2013"/>
+
+    <!-- Vehicle type: Truck (slow, long) -->
+    <vType id="truck" length="12.0" minGap="3.0" maxSpeed="25.00" accel="1.5" decel="3.5"
+           sigma="0.3" tau="1.5" speedDev="0" color="255,0,0"
+           laneChangeModel="LC2013"/>
+
+    <!-- Routes -->
+    <route id="highway_through" edges="highway_upstream highway_downstream out"/>
+    <route id="ramp_merge" edges="onramp highway_downstream out"/>
+
+    <!-- Main highway flows: 4000 vehicles over 3600s -->
+    <flow id="highway_krauss" type="car_krauss" route="highway_through"
+          begin="0" end="3200" number="2800" departLane="best" departSpeed="max"/>
+    <flow id="highway_idm" type="car_idm" route="highway_through"
+          begin="0" end="3200" number="800" departLane="best" departSpeed="max"/>
+    <flow id="highway_truck" type="truck" route="highway_through"
+          begin="0" end="3200" number="400" departLane="2" departSpeed="max"/>
+
+    <!-- On-ramp flow: 1000 vehicles -->
+    <flow id="ramp_krauss" type="car_krauss" route="ramp_merge"
+          begin="100" end="3300" number="700" departSpeed="max"/>
+    <flow id="ramp_idm" type="car_idm" route="ramp_merge"
+          begin="100" end="3300" number="300" departSpeed="max"/>
+
+</routes>
