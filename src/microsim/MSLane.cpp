@@ -1585,6 +1585,11 @@ MSLane::planMovements(SUMOTime t) {
             std::cout << "   plan move for: " << (*veh)->getID();
         }
 #endif
+        // prefetch the next vehicle while processing the current one
+        auto nextVeh = veh + 1;
+        if (nextVeh != myVehicles.rend()) {
+            __builtin_prefetch(*nextVeh, 0, 1);
+        }
         updateLeaderInfo(*veh, vehPart, vehRes, leaders); // 36ns with 8 threads, 9ns with 1
 #ifdef DEBUG_PLAN_MOVE
         if (DEBUG_COND2((*veh))) {
@@ -2293,6 +2298,13 @@ MSLane::executeMovements(const SUMOTime t) {
     // iterate over vehicles in reverse so that move reminders will be called in the correct order
     for (VehCont::reverse_iterator i = myVehicles.rbegin(); i != myVehicles.rend();) {
         MSVehicle* veh = *i;
+        // prefetch the next vehicle while processing the current one
+        {
+            auto nextI = i + 1;
+            if (nextI != myVehicles.rend()) {
+                __builtin_prefetch(*nextI, 0, 1);
+            }
+        }
         // length is needed later when the vehicle may not exist anymore
         const double length = veh->getVehicleType().getLengthWithGap();
         const double nettoLength = veh->getVehicleType().getLength();
