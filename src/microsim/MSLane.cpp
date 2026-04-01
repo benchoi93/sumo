@@ -1466,7 +1466,7 @@ MSLane::safeInsertionSpeed(const MSVehicle* veh, double seen, const MSLeaderInfo
 
 
 // ------ Handling vehicles lapping into lanes ------
-const MSLeaderInfo
+__attribute__((hot)) const MSLeaderInfo
 MSLane::getLastVehicleInformation(const MSVehicle* ego, double latOffset, double minPos, bool allowCached) const {
     if (myLeaderInfoTime < MSNet::getInstance()->getCurrentTimeStep() || ego != nullptr || minPos > 0 || !allowCached) {
         MSLeaderInfo leaderTmp(myWidth, ego, latOffset);
@@ -1522,7 +1522,7 @@ MSLane::getLastVehicleInformation(const MSVehicle* ego, double latOffset, double
 }
 
 
-const MSLeaderInfo
+__attribute__((hot)) const MSLeaderInfo
 MSLane::getFirstVehicleInformation(const MSVehicle* ego, double latOffset, bool onlyFrontOnLane, double maxPos, bool allowCached) const {
 #ifdef HAVE_FOX
     ScopedLocker<> lock(myFollowerInfoMutex, MSGlobals::gNumSimThreads > 1);
@@ -3830,7 +3830,7 @@ MSLane::setLaneStopOffset(const StopOffset& stopOffset) {
 }
 
 
-MSLeaderDistanceInfo
+__attribute__((hot)) MSLeaderDistanceInfo
 MSLane::getFollowersOnConsecutive(const MSVehicle* ego, double backOffset,
                                   bool allSublanes, double searchDist, MinorLinkMode mLinkMode) const {
     assert(ego != 0);
